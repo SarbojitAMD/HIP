@@ -34,6 +34,7 @@ and provides practical suggestions on how to port CUDA code and work through com
   * [Choosing HIP File Extensions](#choosing-hip-file-extensions)
 - [Workarounds](#workarounds)
   * [warpSize](#warpsize)
+  * [Kernel launch with group size > 256](#kernel-launch-with-group-size--256)
 - [memcpyToSymbol](#memcpytosymbol)
 - [threadfence_system](#threadfence_system)
   * [Textures and Cache Control](#textures-and-cache-control)
@@ -186,8 +187,8 @@ Unlike `__CUDA_ARCH__`, the `__HIP_DEVICE_COMPILE__` value is 1 or undefined, an
 |Define  		|  hcc      |  hip-clang  | nvcc 		|  Other (GCC, ICC, Clang, etc.) 
 |--- | --- | --- | --- |---|
 |HIP-related defines:|
-|`__HIP_PLATFORM_HCC___`| Defined | Defined | Undefined |  Defined if targeting hcc platform; undefined otherwise |
-|`__HIP_PLATFORM_NVCC___`| Undefined | Undefined | Defined |  Defined if targeting nvcc platform; undefined otherwise |
+|`__HIP_PLATFORM_HCC__`| Defined | Defined | Undefined |  Defined if targeting hcc platform; undefined otherwise |
+|`__HIP_PLATFORM_NVCC__`| Undefined | Undefined | Defined |  Defined if targeting nvcc platform; undefined otherwise |
 |`__HIP_DEVICE_COMPILE__`     | 1 if compiling for device; undefined if compiling for host  | 1 if compiling for device; undefined if compiling for host  |1 if compiling for device; undefined if compiling for host  | Undefined 
 |`__HIPCC__`		| Defined   | Defined | Defined 		|  Undefined
 |`__HIP_ARCH_*` | 0 or 1 depending on feature support (see below) |0 or 1 depending on feature support (see below) | 0 or 1 depending on feature support (see below) | 0 
@@ -411,6 +412,14 @@ run hipcc when appropriate.
 
 ### warpSize
 Code should not assume a warp size of 32 or 64.  See [Warp Cross-Lane Functions](hip_kernel_language.md#warp-cross-lane-functions) for information on how to write portable wave-aware code.
+
+### Kernel launch with group size > 256
+Kernel code should use ``` __attribute__((amdgpu_flat_work_group_size(<min>,<max>)))```.
+
+For example:
+```
+__global__ void dot(double *a,double *b,const int n) __attribute__((amdgpu_flat_work_group_size(1, 512)))
+```
 
 ## memcpyToSymbol
 

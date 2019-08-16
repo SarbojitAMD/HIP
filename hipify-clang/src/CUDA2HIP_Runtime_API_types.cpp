@@ -84,7 +84,7 @@ const std::map<llvm::StringRef, hipCounter> CUDA_RUNTIME_TYPE_NAME_MAP {
 
   // no analogue
   // CUDA_LAUNCH_PARAMS struct differs
-  {"cudaLaunchParams",                                                 {"hipLaunchParams",                                          "", CONV_TYPE, API_RUNTIME, HIP_UNSUPPORTED}},
+  {"cudaLaunchParams",                                                 {"hipLaunchParams",                                          "", CONV_TYPE, API_RUNTIME}},
 
   // no analogue
   // NOTE: HIP struct is bigger and contains cudaMemcpy3DParms only in the beginning
@@ -402,9 +402,9 @@ const std::map<llvm::StringRef, hipCounter> CUDA_RUNTIME_TYPE_NAME_MAP {
   // CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_WAIT_VALUE_NOR
   {"cudaDevAttrReserved94",                                            {"hipDeviceAttributeCanUseStreamWaitValueNor",               "", CONV_NUMERIC_LITERAL, API_RUNTIME, HIP_UNSUPPORTED}}, // 94
   // CU_DEVICE_ATTRIBUTE_COOPERATIVE_LAUNCH
-  {"cudaDevAttrCooperativeLaunch",                                     {"hipDeviceAttributeCooperativeLaunch",                      "", CONV_NUMERIC_LITERAL, API_RUNTIME, HIP_UNSUPPORTED}}, // 95
+  {"cudaDevAttrCooperativeLaunch",                                     {"hipDeviceAttributeCooperativeLaunch",                      "", CONV_NUMERIC_LITERAL, API_RUNTIME}}, // 95
   // CU_DEVICE_ATTRIBUTE_COOPERATIVE_MULTI_DEVICE_LAUNCH
-  {"cudaDevAttrCooperativeMultiDeviceLaunch",                          {"hipDeviceAttributeCooperativeMultiDeviceLaunch",           "", CONV_NUMERIC_LITERAL, API_RUNTIME, HIP_UNSUPPORTED}}, // 96
+  {"cudaDevAttrCooperativeMultiDeviceLaunch",                          {"hipDeviceAttributeCooperativeMultiDeviceLaunch",           "", CONV_NUMERIC_LITERAL, API_RUNTIME}}, // 96
   // CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK_OPTIN
   {"cudaDevAttrMaxSharedMemoryPerBlockOptin",                          {"hipDeviceAttributeMaxSharedMemoryPerBlockOptin",           "", CONV_NUMERIC_LITERAL, API_RUNTIME, HIP_UNSUPPORTED}}, // 97
   // CU_DEVICE_ATTRIBUTE_CAN_FLUSH_REMOTE_WRITES
@@ -1323,9 +1323,9 @@ const std::map<llvm::StringRef, hipCounter> CUDA_RUNTIME_TYPE_NAME_MAP {
   // CU_IPC_MEM_LAZY_ENABLE_PEER_ACCESS
   {"cudaIpcMemLazyEnablePeerAccess",                                   {"hipIpcMemLazyEnablePeerAccess",                            "", CONV_DEFINE, API_RUNTIME}}, // 0x01
   // CU_MEM_ATTACH_GLOBAL
-  {"cudaMemAttachGlobal",                                              {"hipMemAttachGlobal",                                       "", CONV_DEFINE, API_RUNTIME, HIP_UNSUPPORTED}}, // 0x01
+  {"cudaMemAttachGlobal",                                              {"hipMemAttachGlobal",                                       "", CONV_DEFINE, API_RUNTIME}}, // 0x01
   // CU_MEM_ATTACH_HOST
-  {"cudaMemAttachHost",                                                {"hipMemAttachHost",                                         "", CONV_DEFINE, API_RUNTIME, HIP_UNSUPPORTED}}, // 0x02
+  {"cudaMemAttachHost",                                                {"hipMemAttachHost",                                         "", CONV_DEFINE, API_RUNTIME}}, // 0x02
   // CU_MEM_ATTACH_SINGLE
   {"cudaMemAttachSingle",                                              {"hipMemAttachSingle",                                       "", CONV_DEFINE, API_RUNTIME, HIP_UNSUPPORTED}}, // 0x04
   // no analogue
