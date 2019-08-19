@@ -16,6 +16,15 @@
  * THE SOFTWARE.
  */
 
+
+/* HIT_START
+ * BUILD_CMD: gpu.o %hc -I%hip-path/include -c %S/gpu.cpp -o %T/gpu.o EXCLUDE_HIP_PLATFORM nvcc
+ * BUILD_CMD: launchkernel.o %cc -D__HIP_PLATFORM_HCC__ -I%hip-path/include -c %S/LaunchKernel.c -o %T/launchkernel.o EXCLUDE_HIP_PLATFORM nvcc
+ * BUILD_CMD: LaunchKernel %hc %T/launchkernel.o %T/gpu.o -Wl,--rpath=%hip-path/lib %hip-path/lib/libhip_hcc.so -o %T/%t DEPENDS gpu.o launchkernel.o EXCLUDE_HIP_PLATFORM nvcc
+ * TEST: %t EXCLUDE_HIP_PLATFORM nvcc
+ * HIT_END
+ */
+
 #include "hip/hip_runtime.h"
 #include "hip/hip_runtime_api.h"
 #include <stdio.h>
