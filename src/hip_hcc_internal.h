@@ -652,6 +652,7 @@ class ihipStreamCallback_t {
         : _stream(stream), _callback(callback), _userData(userData) {
     };
     hipStream_t _stream;
+    hsa_signal_t _signal;
     hipStreamCallback_t _callback;
     void* _userData;
 };

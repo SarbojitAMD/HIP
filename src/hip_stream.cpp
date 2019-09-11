@@ -252,16 +252,76 @@ hipError_t hipStreamGetPriority(hipStream_t stream, int* priority) {
     }
 }
 
+bool CallbackHandler(hsa_signal_value_t value, void* cbArgs)
+{
+    hipError_t e = hipSuccess;
 
+    ihipStreamCallback_t* cb = static_cast<ihipStreamCallback_t*> (cbArgs); 
+
+    tprintf(DB_SYNC, "ihipStreamCallbackHandler wait on stream %s\n",ToString(cb->_stream).c_str());
+    GET_TLS();
+
+    cb->_callback(cb->_stream, e, cb->_userData);
+   
+    hsa_signal_store_relaxed(cb->_signal,0);
+
+    delete cb;
+
+    return false;
+}
 //---
 hipError_t hipStreamAddCallback(hipStream_t stream, hipStreamCallback_t callback, void* userData,
                                 unsigned int flags) {
     HIP_INIT_API(hipStreamAddCallback, stream, callback, userData, flags);
     hipError_t e = hipSuccess;
 
-    // Create a thread in detached mode to handle callback
+    
+    // 1. Lock the queue
+    hsa_queue_t* lockedQ = static_cast<hsa_queue_t*> (stream->criticalData()._av.acquire_locked_hsa_queue());
+
+    // 2. Allocate a singals and create barrier
+    hsa_signal_t signal;
+    hsa_status_t status = hsa_signal_create(1, 0, NULL, &signal);
+
+    hsa_signal_t depSignal;
+    status = hsa_signal_create(1, 0, NULL, &depSignal);
+
+    // 3. Register callback for the event
     ihipStreamCallback_t* cb = new ihipStreamCallback_t(stream, callback, userData);
-    std::thread(ihipStreamCallbackHandler, cb).detach();
+    cb->_signal = depSignal;
+
+    hsa_amd_signal_async_handler(signal, HSA_SIGNAL_CONDITION_EQ, 1, CallbackHandler, cb);
+
+    // create barrier
+    const uint32_t queue_mask = lockedQ->size - 1;
+    uint64_t index = hsa_queue_load_write_index_scacquire(lockedQ)+1;
+    uint64_t nextIndex = index + 1;
+
+    hsa_barrier_and_packet_t* barrier = &(((hsa_barrier_and_packet_t*)(lockedQ->base_address))[index&queue_mask]);
+    barrier->completion_signal = signal;
+   
+    // 4. Create dependent barrier 
+    hsa_barrier_and_packet_t* depBarrier = &(((hsa_barrier_and_packet_t*)(lockedQ->base_address))[nextIndex & queue_mask]); 
+
+    depBarrier->dep_signal[0] = depSignal;
+
+    unsigned fenceBits = 0; fenceBits |= ((HSA_FENCE_SCOPE_NONE) << HSA_PACKET_HEADER_ACQUIRE_FENCE_SCOPE); fenceBits |= ((HSA_FENCE_SCOPE_NONE) << HSA_PACKET_HEADER_RELEASE_FENCE_SCOPE);
+    uint16_t header = (HSA_PACKET_TYPE_BARRIER_AND << HSA_PACKET_HEADER_TYPE)| fenceBits| 1 << HSA_PACKET_HEADER_BARRIER;
+    
+    barrier->header = header;
+    depBarrier->header = header;
+
+    // 6. Trigger the doorbell
+    nextIndex = nextIndex + 1;
+    hsa_queue_store_write_index_relaxed(lockedQ, nextIndex);
+    hsa_signal_store_relaxed(lockedQ->doorbell_signal, index+1);
+
+    // 7. Release queue
+    stream->criticalData()._av.release_locked_hsa_queue();
+
+    // Create a thread in detached mode to handle callback
+    //ihipStreamCallback_t* cb = new ihipStreamCallback_t(stream, callback, userData);
+    //std::thread(ihipStreamCallbackHandler, cb).detach();
 
     return ihipLogStatus(e);
 }
