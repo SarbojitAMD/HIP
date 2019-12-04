@@ -77,6 +77,7 @@ int HIP_PROFILE_API = 0;
 std::string HIP_DB_START_API;
 std::string HIP_DB_STOP_API;
 int HIP_DB = 0;
+FILE *HIP_DB_FILE = NULL;
 int HIP_VISIBLE_DEVICES = 0;
 int HIP_WAIT_MODE = 0;
 
@@ -170,6 +171,11 @@ uint64_t recordApiTrace(TlsData *tls, std::string* fullStr, const std::string& a
     if (COMPILE_HIP_DB && HIP_TRACE_API) {
         fprintf(stderr, "%s<<hip-api pid:%d tid:%s @%lu%s\n", API_COLOR, tls->tidInfo.pid(), fullStr->c_str(), apiStartTick,
                 API_COLOR_END);
+    }
+
+    if(HIP_DB_FILE)
+    {
+        fprintf(HIP_DB_FILE, "<<hip-api pid:%d tid:%s @%lu\n", tls->tidInfo.pid(), fullStr->c_str(), apiStartTick);        
     }
 
     return apiStartTick;
@@ -524,6 +530,7 @@ ihipDevice_t::ihipDevice_t(unsigned deviceId, unsigned deviceCnt, hc::accelerato
 
 
 ihipDevice_t::~ihipDevice_t() {
+    std::cerr << "\n =========== Sarbojit : Destroy Primary Device ==========" << std::endl;
     delete _primaryCtx;
     _primaryCtx = NULL;
 }
@@ -1257,7 +1264,9 @@ void HipReadEnv() {
         // Set HIP_TRACE_API default before we read it, so it is printed correctly.
         HIP_TRACE_API = 1;
     }
-
+    if (HIP_DB != 0 && HIP_DB_FILE == NULL){
+        HIP_DB_FILE = fopen("log.txt", "w");
+    }
 
     READ_ENV_I(release, HIP_TRACE_API, 0,
                "Trace each HIP API call.  Print function name and return code to stderr as program "

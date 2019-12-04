@@ -67,6 +67,7 @@ extern int HIP_PROFILE_API;
 // extern int HIP_TRACE_API;
 extern int HIP_ATP;
 extern int HIP_DB;
+extern FILE *HIP_DB_FILE;
 extern int HIP_STAGING_SIZE;    /* size of staging buffers, in KB */
 extern int HIP_STREAM_SIGNALS;  /* number of signals to allocate at stream creation */
 extern int HIP_VISIBLE_DEVICES; /* Contains a comma-separated sequence of GPU identifiers */
@@ -272,6 +273,10 @@ static const DbName dbName[] = {
             snprintf(msgStr, sizeof(msgStr), __VA_ARGS__);                                                            \
             fprintf(stderr, "  %ship-%s pid:%d tid:%d:%s%s", dbName[trace_level]._color,                              \
                     dbName[trace_level]._shortName, tls->tidInfo.pid(), tls->tidInfo.tid(), msgStr, KNRM);            \
+            if(HIP_DB_FILE){                                                                                          \
+                fprintf(HIP_DB_FILE, "  hip-%s pid:%d tid:%d:%s",                     \
+                    dbName[trace_level]._shortName, tls->tidInfo.pid(), tls->tidInfo.tid(), msgStr);            \
+            }                                                                                                         \
         }                                                                                                             \
     }
 #else
@@ -346,7 +351,12 @@ extern uint64_t recordApiTrace(TlsData *tls, std::string* fullStr, const std::st
                     (localHipStatus == 0) ? API_COLOR : KRED, tls->tidInfo.pid(), tls->tidInfo.tid(), \
                     tls->tidInfo.apiSeqNum(), __func__, localHipStatus,                               \
                     ihipErrorString(localHipStatus), ticks, API_COLOR_END);                           \
-        }                                                                                             \
+            if(HIP_DB_FILE){                                                                              \
+                fprintf(HIP_DB_FILE, "  hip-api pid:%d tid:%d.%lu %-30s ret=%2d (%s)>> +%lu\n",    \
+                        tls->tidInfo.pid(), tls->tidInfo.tid(), \
+                        tls->tidInfo.apiSeqNum(), __func__, localHipStatus,                               \
+                        ihipErrorString(localHipStatus), ticks);}                          \
+        }\
         if (HIP_PROFILE_API) {                                                                        \
             MARKER_END();                                                                             \
         }                                                                                             \
