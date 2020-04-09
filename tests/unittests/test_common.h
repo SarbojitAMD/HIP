@@ -58,7 +58,7 @@ THE SOFTWARE.
 #define failed(...)                                                                                \
     printf("%serror: ", KRED);                                                                     \
     printf(__VA_ARGS__);                                                                           \
-    printf("\n");                                                                                  \
+    printf("%s\n",KNRM);                                                                                  \
     return false;
 
 #define warn(...)                                                                                  \
@@ -67,8 +67,7 @@ THE SOFTWARE.
     printf("\n");                                                                                  \
     printf("warn: TEST WARNING\n%s", KNRM);
 
-#define HIP_PRINT_STATUS(status)                                                                   \
-    std::cout << hipGetErrorName(status) << " at line: " << __LINE__ << std::endl;
+#define skipped() printf("%sSkipped subtest %s%s\n",KYEL,__FUNCTION__,KNRM);
 
 #define HIPCHECK(error)                                                                            \
     {                                                                                              \
